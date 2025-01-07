@@ -1,7 +1,7 @@
-![wsarmgo Logo](assets/logo.png)
-# wsarmgo
+![swarmgo Logo](assets/logo.png)
+# swarmgo
 
-wsarmgo is a Go package that allows you to create AI agents capable of interacting, coordinating, and executing tasks. Inspired by OpenAI's Swarm framework, wsarmgo focuses on making agent coordination and execution lightweight, highly controllable, and easily testable.
+swarmgo is a Go package that allows you to create AI agents capable of interacting, coordinating, and executing tasks. Inspired by OpenAI's Swarm framework, swarmgo focuses on making agent coordination and execution lightweight, highly controllable, and easily testable.
 
 It achieves this through two primitive abstractions: Agents and handoffs. An Agent encompasses instructions and tools (functions it can execute), and can at any point choose to hand off a conversation to another Agent.
 
@@ -9,7 +9,7 @@ These primitives are powerful enough to express rich dynamics between tools and 
 
 ## Table of Contents
 
-- [Why wsarmgo](#why-wsarmgo)
+- [Why swarmgo](#why-swarmgo)
 - [Installation](#installation)
 - [Quick Start](#quick-start)
 - [Usage](#usage)
@@ -31,16 +31,16 @@ These primitives are powerful enough to express rich dynamics between tools and 
 - [License](#license)
 - [Acknowledgments](#acknowledgments)
 
-## Why wsarmgo
+## Why swarmgo
 
-wsarmgo explores patterns that are lightweight, scalable, and highly customizable by design. It's best suited for situations dealing with a large number of independent capabilities and instructions that are difficult to encode into a single prompt.
+swarmgo explores patterns that are lightweight, scalable, and highly customizable by design. It's best suited for situations dealing with a large number of independent capabilities and instructions that are difficult to encode into a single prompt.
 
-wsarmgo runs (almost) entirely on the client and, much like the Chat Completions API, does not store state between calls.
+swarmgo runs (almost) entirely on the client and, much like the Chat Completions API, does not store state between calls.
 
 ## Installation
 
 ```bash
-go get github.com/wlevene/wsarmgo
+go get github.com/wlevene/swarmgo
 ```
 
 ## Quick Start
@@ -54,15 +54,15 @@ import (
 	"fmt"
 	"log"
 
-	wsarmgo "github.com/wlevene/wsarmgo"
+	swarmgo "github.com/wlevene/swarmgo"
 	openai "github.com/sashabaranov/go-openai"
-	llm "github.com/wlevene/wsarmgo/llm"
+	llm "github.com/wlevene/swarmgo/llm"
 )
 
 func main() {
-	client := wsarmgo.NewSwarm("YOUR_OPENAI_API_KEY", llm.OpenAI)
+	client := swarmgo.NewSwarm("YOUR_OPENAI_API_KEY", llm.OpenAI)
 
-	agent := &wsarmgo.Agent{
+	agent := &swarmgo.Agent{
 		Name:         "Agent",
 		Instructions: "You are a helpful assistant.",
 		Model:        "gpt-3.5-turbo",
@@ -87,7 +87,7 @@ Creating an Agent
 An Agent represents an AI assistant with specific instructions and functions (tools) it can use.
 
 ```go
-agent := &wsarmgo.Agent{
+agent := &swarmgo.Agent{
 	Name:         "Agent",
 	Instructions: "You are a helpful assistant.",
 	Model:        "gpt-4o",
@@ -123,10 +123,10 @@ Agents can use functions to perform specific tasks. Functions are defined and th
 ### Defining a Function
 
 ```go
-func getWeather(args map[string]interface{}, contextVariables map[string]interface{}) wsarmgo.Result {
+func getWeather(args map[string]interface{}, contextVariables map[string]interface{}) swarmgo.Result {
 	location := args["location"].(string)
 	// Simulate fetching weather data
-	return wsarmgo.Result{
+	return swarmgo.Result{
 		Value: fmt.Sprintf(`{"temp": 67, "unit": "F", "location": "%s"}`, location),
 	}
 }
@@ -135,7 +135,7 @@ func getWeather(args map[string]interface{}, contextVariables map[string]interfa
 ### Adding the Function to an Agent
 
 ```go
-agent.Functions = []wsarmgo.AgentFunction{
+agent.Functions = []swarmgo.AgentFunction{
 	{
 		Name:        "getWeather",
 		Description: "Get the current weather in a given location.",
@@ -177,13 +177,13 @@ agent.InstructionsFunc = instructions
 Agents can hand off conversations to other agents. This is useful for delegating tasks or escalating when an agent is unable to handle a request.
 
 ```go
-func transferToAnotherAgent(args map[string]interface{}, contextVariables map[string]interface{}) wsarmgo.Result {
-	anotherAgent := &wsarmgo.Agent{
+func transferToAnotherAgent(args map[string]interface{}, contextVariables map[string]interface{}) swarmgo.Result {
+	anotherAgent := &swarmgo.Agent{
 		Name:         "AnotherAgent",
 		Instructions: "You are another agent.",
 		Model:        "gpt-3.5-turbo",
 	}
-	return wsarmgo.Result{
+	return swarmgo.Result{
 		Agent: anotherAgent,
 		Value: "Transferring to AnotherAgent.",
 	}
@@ -193,7 +193,7 @@ func transferToAnotherAgent(args map[string]interface{}, contextVariables map[st
 ### Adding Handoff Functions to Agents
 
 ```go
-agent.Functions = append(agent.Functions, wsarmgo.AgentFunction{
+agent.Functions = append(agent.Functions, swarmgo.AgentFunction{
 	Name:        "transferToAnotherAgent",
 	Description: "Transfer the conversation to AnotherAgent.",
 	Parameters: map[string]interface{}{
@@ -207,7 +207,7 @@ agent.Functions = append(agent.Functions, wsarmgo.AgentFunction{
 
 ## Streaming Support
 
-wsarmgo now includes built-in support for streaming responses, allowing real-time processing of AI responses and tool calls. This is particularly useful for long-running operations or when you want to provide immediate feedback to users.
+swarmgo now includes built-in support for streaming responses, allowing real-time processing of AI responses and tool calls. This is particularly useful for long-running operations or when you want to provide immediate feedback to users.
 
 ### Using Streaming
 
@@ -257,9 +257,9 @@ func (h *CustomStreamHandler) OnToolCall(tool openai.ToolCall) {
 Here's an example of using streaming with a file analyzer:
 
 ```go
-client := wsarmgo.NewSwarm("YOUR_OPENAI_API_KEY", llm.OpenAI)
+client := swarmgo.NewSwarm("YOUR_OPENAI_API_KEY", llm.OpenAI)
 
-agent := &wsarmgo.Agent{
+agent := &swarmgo.Agent{
     Name:         "FileAnalyzer",
     Instructions: "You are an assistant that analyzes files.",
     Model:        "gpt-4",
@@ -281,14 +281,14 @@ For a complete example of file analysis with streaming, see [examples/file_analy
 
 ### Concurrent Agent Execution
 
-wsarmgo supports running multiple agents concurrently using the `ConcurrentSwarm` type. This is particularly useful when you need to parallelize agent tasks or run multiple analyses simultaneously.
+swarmgo supports running multiple agents concurrently using the `ConcurrentSwarm` type. This is particularly useful when you need to parallelize agent tasks or run multiple analyses simultaneously.
 
 ```go
 // Create a concurrent swarm
-cs := wsarmgo.NewConcurrentSwarm(apiKey)
+cs := swarmgo.NewConcurrentSwarm(apiKey)
 
 // Configure multiple agents
-configs := map[string]wsarmgo.AgentConfig{
+configs := map[string]swarmgo.AgentConfig{
     "agent1": {
         Agent: agent1,
         Messages: []openai.ChatCompletionMessage{
@@ -336,15 +336,15 @@ See the `examples/concurrent_analyzer/main.go` for a complete example of concurr
 
 ## Memory Management
 
-wsarmgo includes a built-in memory management system that allows agents to store and recall information across conversations. The memory system supports both short-term and long-term memory, with features for organizing and retrieving memories based on type and context.
+swarmgo includes a built-in memory management system that allows agents to store and recall information across conversations. The memory system supports both short-term and long-term memory, with features for organizing and retrieving memories based on type and context.
 
 ```go
 // Create a new agent with memory capabilities
-agent := wsarmgo.NewAgent("MyAgent", "gpt-4")
+agent := swarmgo.NewAgent("MyAgent", "gpt-4")
 
 // Memory is automatically managed for conversations and tool calls
 // You can also explicitly store memories:
-memory := wsarmgo.Memory{
+memory := swarmgo.Memory{
     Content:    "User prefers dark mode",
     Type:       "preference",
     Context:    map[string]interface{}{"setting": "ui"},
@@ -375,22 +375,22 @@ See the [memory_demo](examples/memory_demo/main.go) example for a complete demon
 
 ## LLM Interface
 
-wsarmgo provides a flexible LLM (Language Learning Model) interface that supports multiple providers:
+swarmgo provides a flexible LLM (Language Learning Model) interface that supports multiple providers:
 currently OpenAI and Gemini.
 
 To initialize a new Swarm with a specific provider:
 
 ```go
 // Initialize with OpenAI
-client := wsarmgo.NewSwarm("YOUR_API_KEY", llm.OpenAI)
+client := swarmgo.NewSwarm("YOUR_API_KEY", llm.OpenAI)
 
 // Initialize with Gemini
-client := wsarmgo.NewSwarm("YOUR_API_KEY", llm.Gemini)
+client := swarmgo.NewSwarm("YOUR_API_KEY", llm.Gemini)
 ```
 
 ## Workflows
 
-Workflows in wsarmgo provide structured patterns for organizing and coordinating multiple agents. They help manage complex interactions between agents, define communication paths, and establish clear hierarchies or collaboration patterns. Think of workflows as the orchestration layer that determines how your agents work together to accomplish tasks.
+Workflows in swarmgo provide structured patterns for organizing and coordinating multiple agents. They help manage complex interactions between agents, define communication paths, and establish clear hierarchies or collaboration patterns. Think of workflows as the orchestration layer that determines how your agents work together to accomplish tasks.
 
 Each workflow type serves a different organizational need:
 
@@ -402,15 +402,15 @@ A hierarchical pattern where a supervisor agent oversees and coordinates tasks a
 - Resource allocation across workers
 
 ```go
-workflow := wsarmgo.NewWorkflow(apiKey, llm.OpenAI, wsarmgo.SupervisorWorkflow)
+workflow := swarmgo.NewWorkflow(apiKey, llm.OpenAI, swarmgo.SupervisorWorkflow)
 
 // Add agents to teams
-workflow.AddAgentToTeam(supervisorAgent, wsarmgo.SupervisorTeam)
-workflow.AddAgentToTeam(workerAgent1, wsarmgo.WorkerTeam)
-workflow.AddAgentToTeam(workerAgent2, wsarmgo.WorkerTeam)
+workflow.AddAgentToTeam(supervisorAgent, swarmgo.SupervisorTeam)
+workflow.AddAgentToTeam(workerAgent1, swarmgo.WorkerTeam)
+workflow.AddAgentToTeam(workerAgent2, swarmgo.WorkerTeam)
 
 // Set supervisor as team leader
-workflow.SetTeamLeader(supervisorAgent.Name, wsarmgo.SupervisorTeam)
+workflow.SetTeamLeader(supervisorAgent.Name, swarmgo.SupervisorTeam)
 
 // Connect agents
 workflow.ConnectAgents(supervisorAgent.Name, workerAgent1.Name)
@@ -425,12 +425,12 @@ A tree-like structure where tasks flow from top to bottom through multiple level
 - Sequential processing pipelines
 
 ```go
-workflow := wsarmgo.NewWorkflow(apiKey, llm.OpenAI, wsarmgo.HierarchicalWorkflow)
+workflow := swarmgo.NewWorkflow(apiKey, llm.OpenAI, swarmgo.HierarchicalWorkflow)
 
 // Add agents to teams
-workflow.AddAgentToTeam(managerAgent, wsarmgo.SupervisorTeam)
-workflow.AddAgentToTeam(researchAgent, wsarmgo.ResearchTeam)
-workflow.AddAgentToTeam(analysisAgent, wsarmgo.AnalysisTeam)
+workflow.AddAgentToTeam(managerAgent, swarmgo.SupervisorTeam)
+workflow.AddAgentToTeam(researchAgent, swarmgo.ResearchTeam)
+workflow.AddAgentToTeam(analysisAgent, swarmgo.AnalysisTeam)
 
 // Connect agents in hierarchy
 workflow.ConnectAgents(managerAgent.Name, researchAgent.Name)
@@ -445,12 +445,12 @@ A peer-based pattern where agents work together as equals, passing tasks between
 - Dynamic task sharing
 
 ```go
-workflow := wsarmgo.NewWorkflow(apiKey, llm.OpenAI, wsarmgo.CollaborativeWorkflow)
+workflow := swarmgo.NewWorkflow(apiKey, llm.OpenAI, swarmgo.CollaborativeWorkflow)
 
 // Add agents to document team
-workflow.AddAgentToTeam(editor, wsarmgo.DocumentTeam)
-workflow.AddAgentToTeam(reviewer, wsarmgo.DocumentTeam)
-workflow.AddAgentToTeam(writer, wsarmgo.DocumentTeam)
+workflow.AddAgentToTeam(editor, swarmgo.DocumentTeam)
+workflow.AddAgentToTeam(reviewer, swarmgo.DocumentTeam)
+workflow.AddAgentToTeam(writer, swarmgo.DocumentTeam)
 
 // Connect agents in collaborative pattern
 workflow.ConnectAgents(editor.Name, reviewer.Name)

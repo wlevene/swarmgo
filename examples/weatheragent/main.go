@@ -5,28 +5,28 @@ import (
 	"os"
 
 	dotenv "github.com/joho/godotenv"
-	wsarmgo "github.com/wlevene/wsarmgo"
-	"github.com/wlevene/wsarmgo/llm"
+	swarmgo "github.com/wlevene/swarmgo"
+	"github.com/wlevene/swarmgo/llm"
 )
 
-func getWeather(args map[string]interface{}, contextVariables map[string]interface{}) wsarmgo.Result {
+func getWeather(args map[string]interface{}, contextVariables map[string]interface{}) swarmgo.Result {
 	location := args["location"].(string)
 	time := "now"
 	if t, ok := args["time"].(string); ok {
 		time = t
 	}
-	return wsarmgo.Result{
+	return swarmgo.Result{
 		Success: true,
 		Data:    fmt.Sprintf(`The temperature in %s is 65 degrees at %s.`, location, time),
 	}
 }
 
-func sendEmail(args map[string]interface{}, contextVariables map[string]interface{}) wsarmgo.Result {
+func sendEmail(args map[string]interface{}, contextVariables map[string]interface{}) swarmgo.Result {
 	recipient := args["recipient"].(string)
 	subject := args["subject"].(string)
 	body := args["body"].(string)
 	fmt.Printf("Sending email...\nTo: %s\nSubject: %s\nBody: %s\n", recipient, subject, body)
-	return wsarmgo.Result{
+	return swarmgo.Result{
 		Success: true,
 		Data:    "Sent!",
 	}
@@ -38,7 +38,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	client := wsarmgo.NewSwarm(os.Getenv("OPENAI_API_KEY"), llm.OpenAI)
+	client := swarmgo.NewSwarm(os.Getenv("OPENAI_API_KEY"), llm.OpenAI)
 
 	fnGetWeather, err := NewGetWeatherFn()
 	if err != nil {
@@ -52,13 +52,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	model := wsarmgo.LLM{
+	model := swarmgo.LLM{
 		Model:       "gpt-4",
 		LLMProvider: "OPEN_AI",
 		ApiKey:      os.Getenv("OPENAI_API_KEY"),
 	}
 
-	weatherAgent := wsarmgo.NewBaseAgent(
+	weatherAgent := swarmgo.NewBaseAgent(
 		"WeatherAgent",
 		"You are a helpful weather assistant. Always respond in a natural, conversational way. When providing weather information, format it in a friendly manner rather than just returning raw data. For example, instead of showing JSON, say something like 'The temperature in [city] is [temp] degrees.'",
 		model,
@@ -67,16 +67,16 @@ func main() {
 	weatherAgent.AddFunction(fnGetWeather)
 	weatherAgent.AddFunction(fnSendEmail)
 
-	wsarmgo.RunDemoLoop(client, weatherAgent)
+	swarmgo.RunDemoLoop(client, weatherAgent)
 }
 
 type sendEmailFn struct {
-	wsarmgo.BaseFunction
+	swarmgo.BaseFunction
 }
 
 func NewSendEmailFn() (*sendEmailFn, error) {
 	fn := &sendEmailFn{}
-	baseFn, err := wsarmgo.NewCustomFunction(fn)
+	baseFn, err := swarmgo.NewCustomFunction(fn)
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +85,7 @@ func NewSendEmailFn() (*sendEmailFn, error) {
 	return fn, nil
 }
 
-var _ wsarmgo.AgentFunction = (*sendEmailFn)(nil)
+var _ swarmgo.AgentFunction = (*sendEmailFn)(nil)
 
 func (fn *sendEmailFn) GetID() string {
 	return "sendEmailFn"
@@ -121,12 +121,12 @@ func (fn *sendEmailFn) GetParameters() map[string]interface{} {
 }
 
 type getWeatherFn struct {
-	wsarmgo.BaseFunction
+	swarmgo.BaseFunction
 }
 
 func NewGetWeatherFn() (*getWeatherFn, error) {
 	fn := &getWeatherFn{}
-	baseFn, err := wsarmgo.NewCustomFunction(fn)
+	baseFn, err := swarmgo.NewCustomFunction(fn)
 	if err != nil {
 		return nil, err
 	}
@@ -135,7 +135,7 @@ func NewGetWeatherFn() (*getWeatherFn, error) {
 	return fn, nil
 }
 
-var _ wsarmgo.AgentFunction = (*getWeatherFn)(nil)
+var _ swarmgo.AgentFunction = (*getWeatherFn)(nil)
 
 func (fn *getWeatherFn) GetID() string {
 	return "getWeatherFn"

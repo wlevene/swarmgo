@@ -1,10 +1,10 @@
-package wsarmgo
+package swarmgo
 
 import (
 	"context"
 	"sync"
 
-	"github.com/wlevene/wsarmgo/llm"
+	"github.com/wlevene/swarmgo/llm"
 )
 
 // ConcurrentResult represents the result from a single agent's execution

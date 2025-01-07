@@ -1,9 +1,9 @@
-package wsarmgo
+package swarmgo
 
 import (
 	"net/http"
 
-	"github.com/wlevene/wsarmgo/llm"
+	"github.com/wlevene/swarmgo/llm"
 )
 
 // ClientConfig represents the configuration for an LLM client

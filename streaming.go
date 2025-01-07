@@ -1,11 +1,11 @@
-package wsarmgo
+package swarmgo
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
 
-	"github.com/wlevene/wsarmgo/llm"
+	"github.com/wlevene/swarmgo/llm"
 )
 
 // StreamHandler represents a handler for streaming responses

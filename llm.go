@@ -1,4 +1,4 @@
-package wsarmgo
+package swarmgo
 
 type (
 	LLM struct {

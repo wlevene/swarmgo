@@ -1,4 +1,4 @@
-package wsarmgo
+package swarmgo
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/wlevene/wsarmgo/llm"
+	"github.com/wlevene/swarmgo/llm"
 )
 
 // WorkflowType defines the type of agent interaction pattern

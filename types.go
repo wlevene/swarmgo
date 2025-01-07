@@ -1,7 +1,7 @@
-package wsarmgo
+package swarmgo
 
 import (
-	"github.com/wlevene/wsarmgo/llm"
+	"github.com/wlevene/swarmgo/llm"
 )
 
 // Response represents the response from an agent

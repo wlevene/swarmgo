@@ -1,4 +1,4 @@
-package wsarmgo
+package swarmgo
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/wlevene/wsarmgo/llm"
+	"github.com/wlevene/swarmgo/llm"
 )
 
 // Swarm represents the main structure

@@ -1,4 +1,4 @@
-package wsarmgo
+package swarmgo
 
 import (
 	"bufio"
@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/wlevene/wsarmgo/llm"
+	"github.com/wlevene/swarmgo/llm"
 )
 
 func RunDemoLoop(client *Swarm, agent Agent) {

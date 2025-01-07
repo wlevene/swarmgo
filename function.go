@@ -1,11 +1,11 @@
-package wsarmgo
+package swarmgo
 
 import (
 	"fmt"
 
 	"reflect"
 
-	"github.com/wlevene/wsarmgo/llm"
+	"github.com/wlevene/swarmgo/llm"
 )
 
 type (

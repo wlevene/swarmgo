@@ -1,4 +1,4 @@
-package wsarmgo
+package swarmgo
 
 import (
 	"strings"
