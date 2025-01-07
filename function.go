@@ -3,6 +3,8 @@ package wsarmgo
 import (
 	"fmt"
 
+	"reflect"
+
 	"github.com/wlevene/wsarmgo/llm"
 )
 
@@ -11,20 +13,15 @@ type (
 )
 
 type AgentFunction interface {
-	// GetID 获取函数唯一标识
 	GetID() string
-
-	// GetName 获取函数名称
 	GetName() string
-
-	// GetDescription 获取函数描述
 	GetDescription() string
-
-	// GetParameters 获取函数参数列表
 	GetParameters() map[string]interface{}
 
 	GetFunction() Function
 	SetFunction(fn Function)
+
+	Execute(args map[string]interface{}, contextVariables map[string]interface{}) Result
 }
 
 // FunctionToDefinition converts an AgentFunction to a llm.Function
@@ -47,38 +44,43 @@ type BaseFunction struct {
 var _ AgentFunction = (*BaseFunction)(nil)
 
 // NewCustomFunction 是一个通用构造函数，用于初始化自定义函数对象
-func NewCustomFunction(customFunc interface{}) *BaseFunction {
-	// 使用反射获取自定义函数对象的方法
-	id := customFunc.(interface{ GetID() string }).GetID()
-	name := customFunc.(interface{ GetName() string }).GetName()
-	description := customFunc.(interface{ GetDescription() string }).GetDescription()
-	parameters := customFunc.(interface{ GetParameters() map[string]interface{} }).GetParameters()
-	execute := customFunc.(interface {
-		Execute(args map[string]interface{}, contextVariables map[string]interface{}) Result
-	}).Execute
+func NewCustomFunction(customFunc interface{}) (*BaseFunction, error) {
+	v := reflect.ValueOf(customFunc)
+	if v.Kind() != reflect.Ptr || v.IsNil() {
+		return nil, fmt.Errorf("customFunc must be a non-nil pointer")
+	}
 
-	fmt.Println("#### name:", name)
-	fmt.Println("#### description:", description)
+	// 获取方法
+	getID := v.MethodByName("GetID")
+	getName := v.MethodByName("GetName")
+	getDescription := v.MethodByName("GetDescription")
+	getParameters := v.MethodByName("GetParameters")
+	execute := v.MethodByName("Execute")
 
-	baseFn := newFunction(id, name, description, parameters, execute).(*BaseFunction)
-	return baseFn
-}
+	if !getID.IsValid() || !getName.IsValid() || !getDescription.IsValid() || !getParameters.IsValid() || !execute.IsValid() {
+		return nil, fmt.Errorf("customFunc must implement GetID, GetName, GetDescription, GetParameters, and Execute methods")
+	}
 
-func newFunction(
-	id string,
-	name string,
-	description string,
-	parameters map[string]interface{},
-	fn Function) AgentFunction {
+	id := getID.Call(nil)[0].String()
+	name := getName.Call(nil)[0].String()
+	description := getDescription.Call(nil)[0].String()
+	parameters := getParameters.Call(nil)[0].Interface().(map[string]interface{})
 
-	obj := &BaseFunction{
+	executeFunc := func(args map[string]interface{}, contextVariables map[string]interface{}) Result {
+		result := execute.Call([]reflect.Value{
+			reflect.ValueOf(args),
+			reflect.ValueOf(contextVariables),
+		})
+		return result[0].Interface().(Result)
+	}
+
+	return &BaseFunction{
 		id:          id,
 		name:        name,
 		description: description,
 		parameters:  parameters,
-	}
-
-	return obj
+		fn:          executeFunc,
+	}, nil
 }
 
 func (f *BaseFunction) GetID() string {
@@ -106,8 +108,5 @@ func (f *BaseFunction) SetFunction(fn Function) {
 }
 
 func (f *BaseFunction) Execute(args map[string]interface{}, contextVariables map[string]interface{}) Result {
-	return Result{
-		Success: true,
-		Data:    "Success",
-	}
+	return f.fn(args, contextVariables)
 }

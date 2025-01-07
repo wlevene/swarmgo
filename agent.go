@@ -1,11 +1,11 @@
 package wsarmgo
 
 import (
-	"fmt"
 	"strings"
 	"text/template"
 )
 
+// Agent defines the interface for an agent.
 type Agent interface {
 	GetName() string
 	GetInstructions() string
@@ -23,6 +23,7 @@ type Agent interface {
 	SetModel(LLM)
 }
 
+// BaseAgent is a basic implementation of the Agent interface.
 type BaseAgent struct {
 	name              string          // The model identifier.
 	model             LLM             // The LLM provider to use.
@@ -35,51 +36,58 @@ type BaseAgent struct {
 	agentVars         map[string]interface{}
 }
 
+// Ensure BaseAgent implements the Agent interface.
 var _ Agent = (*BaseAgent)(nil)
 
+// GetName returns the name of the agent.
 func (a *BaseAgent) GetName() string {
 	return a.name
 }
 
+// GetInstructions returns the instructions for the agent.
 func (a *BaseAgent) GetInstructions() string {
 	tmpl, err := template.New("instructions").Parse(a.instructions)
 	if err != nil {
+		// Log the error or handle it appropriately
 		return a.instructions
 	}
 
 	var result strings.Builder
 	err = tmpl.Execute(&result, a.instructionVars)
 	if err != nil {
-		// 处理模板执行错误
+		// Log the error or handle it appropriately
 		return a.instructions
 	}
 
-	fmt.Println("")
-	fmt.Println("Agent:", a.name)
-	fmt.Println("- GetInstructions:", result.String())
 	return result.String()
 }
 
+// GetModel returns the LLM model used by the agent.
 func (a *BaseAgent) GetModel() LLM {
 	return a.model
 }
 
+// SetName sets the name of the agent.
 func (a *BaseAgent) SetName(name string) {
 	a.name = name
 }
 
+// SetInstructions sets the instructions for the agent.
 func (a *BaseAgent) SetInstructions(instructions string) {
 	a.instructions = instructions
 }
 
+// AddFunction adds a function to the agent's list of functions.
 func (a *BaseAgent) AddFunction(fn AgentFunction) {
 	a.Functions = append(a.Functions, fn)
 }
 
+// SetModel sets the LLM model for the agent.
 func (a *BaseAgent) SetModel(model LLM) {
 	a.model = model
 }
 
+// SetValue sets a value in the agent's variables.
 func (a *BaseAgent) SetValue(key string, value interface{}) {
 	if a.agentVars == nil {
 		a.agentVars = make(map[string]interface{})
@@ -87,6 +95,7 @@ func (a *BaseAgent) SetValue(key string, value interface{}) {
 	a.agentVars[key] = value
 }
 
+// SetInstructionsVar sets a value in the agent's instruction variables.
 func (a *BaseAgent) SetInstructionsVar(key string, value interface{}) {
 	if a.instructionVars == nil {
 		a.instructionVars = make(map[string]interface{})
@@ -94,6 +103,7 @@ func (a *BaseAgent) SetInstructionsVar(key string, value interface{}) {
 	a.instructionVars[key] = value
 }
 
+// GetValue retrieves a value from the agent's variables.
 func (a *BaseAgent) GetValue(key string) interface{} {
 	if a.agentVars == nil {
 		return nil
@@ -101,21 +111,25 @@ func (a *BaseAgent) GetValue(key string) interface{} {
 	return a.agentVars[key]
 }
 
+// GetInstructionsVar retrieves a value from the agent's instruction variables.
 func (a *BaseAgent) GetInstructionsVar(key string) interface{} {
 	if a.instructionVars == nil {
 		return nil
 	}
 	return a.instructionVars[key]
 }
+
+// GetMemory returns the memory store of the agent.
 func (a *BaseAgent) GetMemory() *MemoryStore {
 	return a.memory
 }
 
+// GetFunctions returns the list of functions the agent can perform.
 func (a *BaseAgent) GetFunctions() []AgentFunction {
 	return a.Functions
 }
 
-// NewAgent creates a new agent with initialized memory store
+// NewBaseAgent creates a new BaseAgent with initialized memory store.
 func NewBaseAgent(name string, instructions string, model LLM) *BaseAgent {
 	return &BaseAgent{
 		name:            name,
