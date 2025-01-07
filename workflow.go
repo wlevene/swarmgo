@@ -1,4 +1,4 @@
-package swarmgo
+package wsarmgo
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/wlevene/swarmgo/llm"
+	"github.com/wlevene/wsarmgo/llm"
 )
 
 // WorkflowType defines the type of agent interaction pattern
@@ -43,15 +43,15 @@ const (
 // Workflow represents a collection of agents and their connections.
 type Workflow struct {
 	swarm         *Swarm
-	agents        map[string]*Agent
+	agents        map[string]Agent
 	connections   map[string][]string
 	workflowType  WorkflowType
 	sharedState   map[string]interface{}
 	agentStates   map[string]map[string]interface{}
-	teams         map[TeamType][]*Agent // Agents grouped by team
-	teamLeaders   map[TeamType]string   // Team leader for each team
-	currentAgent  string                // Track current active agent
-	routingLog    []string              // Log of agent transitions
+	teams         map[TeamType][]Agent // Agents grouped by team
+	teamLeaders   map[TeamType]string  // Team leader for each team
+	currentAgent  string               // Track current active agent
+	routingLog    []string             // Log of agent transitions
 	cycleHandling CycleHandling
 	cycleCallback func(from, to string) (bool, error) // Callback for cycle detection
 	stepResults   []StepResult                        // Track results of each step
@@ -74,12 +74,12 @@ func NewWorkflow(apikey string, provider llm.LLMProvider, workflowType WorkflowT
 	swarm := NewSwarm(apikey, provider)
 	return &Workflow{
 		swarm:         swarm,
-		agents:        make(map[string]*Agent),
+		agents:        make(map[string]Agent),
 		connections:   make(map[string][]string),
 		workflowType:  workflowType,
 		sharedState:   make(map[string]interface{}),
 		agentStates:   make(map[string]map[string]interface{}),
-		teams:         make(map[TeamType][]*Agent),
+		teams:         make(map[TeamType][]Agent),
 		teamLeaders:   make(map[TeamType]string),
 		routingLog:    make([]string, 0),
 		cycleHandling: StopOnCycle,
@@ -119,7 +119,7 @@ func (wf *Workflow) GetRoutingLog() []string {
 }
 
 // GetAgents returns all agents in the workflow
-func (wf *Workflow) GetAgents() map[string]*Agent {
+func (wf *Workflow) GetAgents() map[string]Agent {
 	return wf.agents
 }
 
@@ -129,7 +129,7 @@ func (wf *Workflow) GetConnections() map[string][]string {
 }
 
 // GetTeams returns all teams in the workflow
-func (wf *Workflow) GetTeams() map[TeamType][]*Agent {
+func (wf *Workflow) GetTeams() map[TeamType][]Agent {
 	return wf.teams
 }
 
@@ -139,15 +139,15 @@ func (wf *Workflow) GetTeamLeaders() map[TeamType]string {
 }
 
 // AddAgent adds an agent to the workflow.
-func (wf *Workflow) AddAgent(agent *Agent) {
-	wf.agents[agent.Name] = agent
-	wf.agentStates[agent.Name] = make(map[string]interface{})
+func (wf *Workflow) AddAgent(agent Agent) {
+	wf.agents[agent.GetName()] = agent
+	wf.agentStates[agent.GetName()] = make(map[string]interface{})
 }
 
 // AddAgentToTeam adds an agent to a specific team
-func (wf *Workflow) AddAgentToTeam(agent *Agent, team TeamType) {
-	wf.agents[agent.Name] = agent
-	wf.agentStates[agent.Name] = make(map[string]interface{})
+func (wf *Workflow) AddAgentToTeam(agent Agent, team TeamType) {
+	wf.agents[agent.GetName()] = agent
+	wf.agentStates[agent.GetName()] = make(map[string]interface{})
 	wf.teams[team] = append(wf.teams[team], agent)
 }
 
@@ -403,7 +403,7 @@ func (wf *Workflow) handleSupervisorRouting(currentAgent string, messageHistory 
 				}
 				// If no leader, try to find any team member
 				if agents, exists := wf.teams[team]; exists && len(agents) > 0 {
-					return agents[0].Name, true
+					return agents[0].GetName(), true
 				}
 			}
 		}
@@ -423,7 +423,7 @@ func (wf *Workflow) handleHierarchicalRouting(currentAgent string, messageHistor
 		// Find which team the current agent belongs to
 		for team, agents := range wf.teams {
 			for _, agent := range agents {
-				if agent.Name == currentAgent {
+				if agent.GetName() == currentAgent {
 					// Route to team leader if exists
 					if leader, exists := wf.teamLeaders[team]; exists {
 						return leader, true

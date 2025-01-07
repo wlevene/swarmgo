@@ -1,4 +1,4 @@
-package swarmgo
+package wsarmgo
 
 import (
 	"encoding/json"
@@ -8,20 +8,20 @@ import (
 
 // Memory represents a single memory entry
 type Memory struct {
-	Content     string                 `json:"content"`     // The actual memory content
-	Type        string                 `json:"type"`        // Type of memory (e.g., "conversation", "fact", "task")
-	Context     map[string]interface{} `json:"context"`     // Associated context
-	Timestamp   time.Time             `json:"timestamp"`   // When the memory was created
-	Importance  float64               `json:"importance"`  // Importance score (0-1)
-	References  []string              `json:"references"`  // References to related memories
+	Content    string                 `json:"content"`    // The actual memory content
+	Type       string                 `json:"type"`       // Type of memory (e.g., "conversation", "fact", "task")
+	Context    map[string]interface{} `json:"context"`    // Associated context
+	Timestamp  time.Time              `json:"timestamp"`  // When the memory was created
+	Importance float64                `json:"importance"` // Importance score (0-1)
+	References []string               `json:"references"` // References to related memories
 }
 
 // MemoryStore manages agent memories
 type MemoryStore struct {
-	shortTerm  []Memory              // Recent memories (FIFO buffer)
-	longTerm   map[string][]Memory   // Organized long-term memories
-	maxShort   int                   // Maximum number of short-term memories
-	mu         sync.RWMutex          // For thread safety
+	shortTerm []Memory            // Recent memories (FIFO buffer)
+	longTerm  map[string][]Memory // Organized long-term memories
+	maxShort  int                 // Maximum number of short-term memories
+	mu        sync.RWMutex        // For thread safety
 }
 
 // NewMemoryStore creates a new memory store with default settings
@@ -59,12 +59,12 @@ func (ms *MemoryStore) GetRecentMemories(n int) []Memory {
 	if n > len(ms.shortTerm) {
 		n = len(ms.shortTerm)
 	}
-	
+
 	start := len(ms.shortTerm) - n
 	if start < 0 {
 		start = 0
 	}
-	
+
 	return ms.shortTerm[start:]
 }
 
@@ -106,8 +106,8 @@ func (ms *MemoryStore) SerializeMemories() ([]byte, error) {
 	defer ms.mu.RUnlock()
 
 	data := struct {
-		ShortTerm []Memory              `json:"short_term"`
-		LongTerm  map[string][]Memory   `json:"long_term"`
+		ShortTerm []Memory            `json:"short_term"`
+		LongTerm  map[string][]Memory `json:"long_term"`
 	}{
 		ShortTerm: ms.shortTerm,
 		LongTerm:  ms.longTerm,
@@ -122,8 +122,8 @@ func (ms *MemoryStore) LoadMemories(data []byte) error {
 	defer ms.mu.Unlock()
 
 	var loaded struct {
-		ShortTerm []Memory              `json:"short_term"`
-		LongTerm  map[string][]Memory   `json:"long_term"`
+		ShortTerm []Memory            `json:"short_term"`
+		LongTerm  map[string][]Memory `json:"long_term"`
 	}
 
 	if err := json.Unmarshal(data, &loaded); err != nil {

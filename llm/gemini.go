@@ -22,8 +22,6 @@ type GeminiOptions struct {
 	SafetySettings []*genai.SafetySetting
 }
 
-
-
 // NewGeminiLLM creates a new Gemini LLM client
 func NewGeminiLLM(apiKey string, opts ...GeminiOptions) (*GeminiLLM, error) {
 	ctx := context.Background()
@@ -31,7 +29,6 @@ func NewGeminiLLM(apiKey string, opts ...GeminiOptions) (*GeminiLLM, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Gemini client: %v", err)
 	}
-
 
 	return &GeminiLLM{
 		client: client,
@@ -124,34 +121,32 @@ func convertToGeminiTools(tools []Tool) []*genai.Tool {
 			Type: genai.TypeObject,
 		}
 
+		schema.Properties = make(map[string]*genai.Schema)
 
-			schema.Properties = make(map[string]*genai.Schema)
-			
-			if properties, ok := tool.Function.Parameters["properties"].(map[string]interface{}); ok {
-				for name, prop := range properties {
-					if propMap, ok := prop.(map[string]interface{}); ok {
-						propSchema := &genai.Schema{}
-						if typ, ok := propMap["type"].(string); ok {
-							propSchema.Type = convertSchemaType(typ)
-						}
-						if desc, ok := propMap["description"].(string); ok {
-							propSchema.Description = desc
-						}
-						schema.Properties[name] = propSchema
+		if properties, ok := tool.Function.Parameters["properties"].(map[string]interface{}); ok {
+			for name, prop := range properties {
+				if propMap, ok := prop.(map[string]interface{}); ok {
+					propSchema := &genai.Schema{}
+					if typ, ok := propMap["type"].(string); ok {
+						propSchema.Type = convertSchemaType(typ)
 					}
+					if desc, ok := propMap["description"].(string); ok {
+						propSchema.Description = desc
+					}
+					schema.Properties[name] = propSchema
 				}
 			}
+		}
 
-			if required, ok := tool.Function.Parameters["required"].([]interface{}); ok {
-				reqFields := make([]string, len(required))
-				for i, r := range required {
-					if str, ok := r.(string); ok {
-						reqFields[i] = str
-					}
+		if required, ok := tool.Function.Parameters["required"].([]interface{}); ok {
+			reqFields := make([]string, len(required))
+			for i, r := range required {
+				if str, ok := r.(string); ok {
+					reqFields[i] = str
 				}
-				schema.Required = reqFields
 			}
-		
+			schema.Required = reqFields
+		}
 
 		geminiTools[i] = &genai.Tool{
 			FunctionDeclarations: []*genai.FunctionDeclaration{
@@ -189,7 +184,7 @@ func convertSchemaType(typ string) genai.Type {
 // convertFromGeminiToolCalls converts Gemini's tool calls to our generic type
 func convertFromGeminiToolCalls(parts []genai.Part) []ToolCall {
 	var calls []ToolCall
-	
+
 	for _, part := range parts {
 		if fc, ok := part.(genai.FunctionCall); ok {
 			args, _ := json.Marshal(fc.Args)
@@ -202,7 +197,7 @@ func convertFromGeminiToolCalls(parts []genai.Part) []ToolCall {
 			})
 		}
 	}
-	
+
 	return calls
 }
 
@@ -279,7 +274,7 @@ func (g *GeminiLLM) CreateChatCompletion(ctx context.Context, req ChatCompletion
 			// Create new messages array with original messages plus function results
 			var newMessages []Message
 			newMessages = append(newMessages, req.Messages...)
-			
+
 			// Add assistant's message with function calls
 			newMessages = append(newMessages, Message{
 				Role:      RoleAssistant,
@@ -301,7 +296,7 @@ func (g *GeminiLLM) CreateChatCompletion(ctx context.Context, req ChatCompletion
 				Model:       req.Model,
 				Messages:    newMessages,
 				Temperature: req.Temperature,
-				TopP:       req.TopP,
+				TopP:        req.TopP,
 				MaxTokens:   req.MaxTokens,
 			}
 
@@ -361,13 +356,13 @@ func (g *GeminiLLM) CreateChatCompletion(ctx context.Context, req ChatCompletion
 
 // geminiStreamWrapper wraps Gemini's stream to implement our ChatCompletionStream interface
 type geminiStreamWrapper struct {
-	iter              *genai.GenerateContentResponseIterator
-	client            *GeminiLLM
-	req               ChatCompletionRequest
-	ctx               context.Context
-	inFunctionCall    bool
-	currentToolCall   *ToolCall
-	toolCallBuffer    map[string]*ToolCall
+	iter            *genai.GenerateContentResponseIterator
+	client          *GeminiLLM
+	req             ChatCompletionRequest
+	ctx             context.Context
+	inFunctionCall  bool
+	currentToolCall *ToolCall
+	toolCallBuffer  map[string]*ToolCall
 }
 
 func (w *geminiStreamWrapper) Recv() (ChatCompletionResponse, error) {
@@ -451,7 +446,7 @@ func (w *geminiStreamWrapper) handleFunctionResponse() (ChatCompletionResponse, 
 	// Create new messages array with original messages plus function results
 	var newMessages []Message
 	newMessages = append(newMessages, w.req.Messages...)
-	
+
 	// Add the last assistant message with function calls
 	lastAssistantMsg := w.req.Messages[len(w.req.Messages)-1]
 	newMessages = append(newMessages, lastAssistantMsg)
@@ -482,7 +477,7 @@ func (w *geminiStreamWrapper) handleFunctionResponse() (ChatCompletionResponse, 
 
 	// Start new stream for the response
 	w.iter = model.GenerateContentStream(w.ctx, parts...)
-	
+
 	// Get first response from new stream
 	return w.Recv()
 }

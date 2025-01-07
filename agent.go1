@@ -1,7 +1,7 @@
-package swarmgo
+package wsarmgo
 
 import (
-	"github.com/wlevene/swarmgo/llm"
+	"github.com/wlevene/wsarmgo/llm"
 )
 
 // Agent represents an entity with specific attributes and behaviors.

@@ -1,4 +1,4 @@
-package swarmgo
+package wsarmgo
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/wlevene/swarmgo/llm"
+	"github.com/wlevene/wsarmgo/llm"
 )
 
 // Swarm represents the main structure
@@ -60,7 +60,7 @@ func NewSwarm(apiKey string, provider llm.LLMProvider) *Swarm {
 // getChatCompletion requests a chat completion from the LLM
 func (s *Swarm) getChatCompletion(
 	ctx context.Context,
-	agent *Agent,
+	agent Agent,
 	history []llm.Message,
 	contextVariables map[string]interface{},
 	modelOverride string,
@@ -68,10 +68,10 @@ func (s *Swarm) getChatCompletion(
 	debug bool,
 ) (llm.ChatCompletionResponse, error) {
 	// Prepare the initial system message with agent instructions
-	instructions := agent.Instructions
-	if agent.InstructionsFunc != nil {
-		instructions = agent.InstructionsFunc(contextVariables)
-	}
+	instructions := agent.GetInstructions()
+	// if agent.InstructionsFunc != nil {
+	// 	instructions = agent.InstructionsFunc(contextVariables)
+	// }
 	messages := append([]llm.Message{
 		{
 			Role:    llm.RoleSystem,
@@ -81,7 +81,7 @@ func (s *Swarm) getChatCompletion(
 
 	// Build tool definitions from agent's functions
 	var tools []llm.Tool
-	for _, af := range agent.Functions {
+	for _, af := range agent.GetFunctions() {
 		def := FunctionToDefinition(af)
 		tools = append(tools, llm.Tool{
 			Type: "function",
@@ -94,13 +94,13 @@ func (s *Swarm) getChatCompletion(
 	}
 
 	// Prepare the chat completion request
-	model := agent.Model
+	model := agent.GetModel()
 	if modelOverride != "" {
-		model = modelOverride
+		// model = modelOverride
 	}
 
 	req := llm.ChatCompletionRequest{
-		Model:    model,
+		Model:    model.Model,
 		Messages: messages,
 		Tools:    tools,
 	}
@@ -122,7 +122,7 @@ func (s *Swarm) getChatCompletion(
 func (s *Swarm) handleToolCall(
 	ctx context.Context,
 	toolCall *llm.ToolCall,
-	agent *Agent,
+	agent Agent,
 	contextVariables map[string]interface{},
 	debug bool,
 ) (Response, error) {
@@ -140,10 +140,10 @@ func (s *Swarm) handleToolCall(
 	}
 
 	// Find the corresponding function in the agent's functions
-	var functionFound *AgentFunction
-	for _, af := range agent.Functions {
-		if af.Name == toolName {
-			functionFound = &af
+	var functionFound AgentFunction
+	for _, af := range agent.GetFunctions() {
+		if af.GetName() == toolName {
+			functionFound = af
 			break
 		}
 	}
@@ -165,7 +165,7 @@ func (s *Swarm) handleToolCall(
 	}
 
 	// Execute the function
-	result := functionFound.Function(args, contextVariables)
+	result := functionFound.GetFunction()(args, contextVariables)
 
 	// Create a message with the tool result
 	toolResultMessage := llm.Message{
@@ -186,7 +186,7 @@ func (s *Swarm) handleToolCall(
 // Run executes the chat interaction loop with the agent
 func (s *Swarm) Run(
 	ctx context.Context,
-	agent *Agent,
+	agent Agent,
 	messages []llm.Message,
 	contextVariables map[string]interface{},
 	modelOverride string,
@@ -202,17 +202,12 @@ func (s *Swarm) Run(
 		contextVariables = make(map[string]interface{})
 	}
 
-	// Initialize memory if not already initialized
-	if activeAgent.Memory == nil {
-		activeAgent.Memory = NewMemoryStore(100)
-	}
-
 	initLen := len(messages)
 	turns := 0
 
 	// Store initial user message as memory if it exists
 	if len(messages) > 0 && messages[len(messages)-1].Role == llm.RoleUser {
-		activeAgent.Memory.AddMemory(Memory{
+		activeAgent.GetMemory().AddMemory(Memory{
 			Content:   messages[len(messages)-1].Content,
 			Timestamp: time.Now(),
 		})

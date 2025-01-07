@@ -1,4 +1,4 @@
-package swarmgo
+package wsarmgo
 
 import (
 	"fmt"
@@ -12,14 +12,14 @@ func ProcessAndPrintResponse(response Response) {
 		if message.Role == "assistant" {
 			// Print assistant messages in blue, use agent name if available
 			name := "Assistant"
-			if response.Agent != nil && response.Agent.Name != "" {
-				name = response.Agent.Name
+			if response.Agent != nil && response.Agent.GetName() != "" {
+				name = response.Agent.GetName()
 			}
 
 			// Print tool calls first
 			if len(message.ToolCalls) > 0 {
 				for _, toolCall := range message.ToolCalls {
-					fmt.Printf("\033[94m%s\033[0m is calling function '%s' with arguments: %s\n", 
+					fmt.Printf("\033[94m%s\033[0m is calling function '%s' with arguments: %s\n",
 						name, toolCall.Function.Name, toolCall.Function.Arguments)
 				}
 				continue // Skip printing empty content if we only have tool calls

@@ -3,7 +3,7 @@ package visualization
 import (
 	"time"
 
-	"github.com/wlevene/swarmgo"
+	"github.com/wlevene/wsarmgo"
 )
 
 // Hook implements visualization hooks for the workflow
@@ -19,7 +19,7 @@ func NewHook(port int) *Hook {
 }
 
 // OnWorkflowStart is called when the workflow starts
-func (h *Hook) OnWorkflowStart(workflow *swarmgo.Workflow) {
+func (h *Hook) OnWorkflowStart(workflow *wsarmgo.Workflow) {
 	// Convert workflow data to visualization format
 	data := WorkflowData{
 		Agents:      make([]string, 0),
@@ -42,7 +42,7 @@ func (h *Hook) OnWorkflowStart(workflow *swarmgo.Workflow) {
 	for team, agents := range workflow.GetTeams() {
 		teamAgents := make([]string, len(agents))
 		for i, agent := range agents {
-			teamAgents[i] = agent.Name
+			teamAgents[i] = agent.GetName()
 		}
 		data.Teams[string(team)] = teamAgents
 	}
@@ -109,7 +109,7 @@ func (h *Hook) OnCycleDetected(fromAgent, toAgent string, count int) {
 }
 
 // OnWorkflowEnd is called when the workflow completes
-func (h *Hook) OnWorkflowEnd(workflow *swarmgo.Workflow) {
+func (h *Hook) OnWorkflowEnd(workflow *wsarmgo.Workflow) {
 	h.server.BroadcastEvent(Event{
 		Type:      EventWorkflowEnded,
 		Timestamp: time.Now(),

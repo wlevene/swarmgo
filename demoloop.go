@@ -1,4 +1,4 @@
-package swarmgo
+package wsarmgo
 
 import (
 	"bufio"
@@ -8,10 +8,10 @@ import (
 	"os"
 	"strings"
 
-	"github.com/wlevene/swarmgo/llm"
+	"github.com/wlevene/wsarmgo/llm"
 )
 
-func RunDemoLoop(client *Swarm, agent *Agent) {
+func RunDemoLoop(client *Swarm, agent Agent) {
 	// Create a new context for the operation
 	ctx := context.Background()
 
@@ -55,7 +55,7 @@ func RunDemoLoop(client *Swarm, agent *Agent) {
 			switch msg.Role {
 			case llm.RoleAssistant:
 				if msg.Content != "" {
-					fmt.Printf("\033[94m%s\033[0m: %s\n", response.Agent.Name, msg.Content)
+					fmt.Printf("\033[94m%s\033[0m: %s\n", response.Agent.GetName(), msg.Content)
 					lastAssistantMessage = msg
 				}
 			case llm.RoleFunction:
@@ -68,8 +68,8 @@ func RunDemoLoop(client *Swarm, agent *Agent) {
 		messages = append(messages, functionMessages...)
 		messages = append(messages, lastAssistantMessage)
 
-		if response.Agent != nil && response.Agent.Name != activeAgent.Name {
-			fmt.Printf("Transferring conversation to %s.\n", response.Agent.Name)
+		if response.Agent != nil && response.Agent.GetName() != activeAgent.GetName() {
+			fmt.Printf("Transferring conversation to %s.\n", response.Agent.GetName())
 			activeAgent = response.Agent
 		}
 	}

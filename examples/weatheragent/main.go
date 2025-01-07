@@ -5,29 +5,31 @@ import (
 	"os"
 
 	dotenv "github.com/joho/godotenv"
-	swarmgo "github.com/wlevene/swarmgo"
-	"github.com/wlevene/swarmgo/llm"
+	wsarmgo "github.com/wlevene/wsarmgo"
+	"github.com/wlevene/wsarmgo/llm"
 )
 
-func getWeather(args map[string]interface{}, contextVariables map[string]interface{}) swarmgo.Result {
+func getWeather(args map[string]interface{}, contextVariables map[string]interface{}) wsarmgo.Result {
 	location := args["location"].(string)
 	time := "now"
 	if t, ok := args["time"].(string); ok {
 		time = t
 	}
-	return swarmgo.Result{
+	return wsarmgo.Result{
 		Success: true,
 		Data:    fmt.Sprintf(`The temperature in %s is 65 degrees at %s.`, location, time),
 	}
 }
 
-func sendEmail(args map[string]interface{}, contextVariables map[string]interface{}) swarmgo.Result {
+func sendEmail(args map[string]interface{}, contextVariables map[string]interface{}) wsarmgo.Result {
+
+	fmt.Println("Sending email...: ", args)
 	recipient := args["recipient"].(string)
 	subject := args["subject"].(string)
 	body := args["body"].(string)
 	fmt.Println("Sending email...")
 	fmt.Printf("To: %s\nSubject: %s\nBody: %s\n", recipient, subject, body)
-	return swarmgo.Result{
+	return wsarmgo.Result{
 		Success: true,
 		Data:    "Sent!",
 	}
@@ -36,56 +38,91 @@ func sendEmail(args map[string]interface{}, contextVariables map[string]interfac
 func main() {
 	dotenv.Load()
 
-	client := swarmgo.NewSwarm(os.Getenv("OPENAI_API_KEY"), llm.OpenAI)
+	client := wsarmgo.NewSwarm(os.Getenv("OPENAI_API_KEY"), llm.OpenAI)
 
-	weatherAgent := &swarmgo.Agent{
-		Name:         "WeatherAgent",
-		Instructions: "You are a helpful weather assistant. Always respond in a natural, conversational way. When providing weather information, format it in a friendly manner rather than just returning raw data. For example, instead of showing JSON, say something like 'The temperature in [city] is [temp] degrees.'",
-		Functions: []swarmgo.AgentFunction{
-			{
-				Name:        "getWeather",
-				Description: "Get the current weather in a given location. Location MUST be a city.",
-				Parameters: map[string]interface{}{
-					"type": "object",
-					"properties": map[string]interface{}{
-						"location": map[string]interface{}{
-							"type":        "string",
-							"description": "The city to get the weather for",
-						},
-						"time": map[string]interface{}{
-							"type":        "string",
-							"description": "The time to get the weather for",
-						},
-					},
-					"required": []interface{}{"location"},
-				},
-				Function: getWeather,
+	fn_getweather := NewGetWeatherFn()
+	fn_sendmail := NewSendEmalFn()
+
+	model := wsarmgo.LLM{
+		Model:       "gpt-4",
+		LLMProvider: "OPEN_AI",
+		ApiKey:      os.Getenv("OPENAI_API_KEY"),
+	}
+	weatherAgent := wsarmgo.NewBaseAgent("WeatherAgent", "You are a helpful weather assistant. Always respond in a natural, conversational way. When providing weather information, format it in a friendly manner rather than just returning raw data. For example, instead of showing JSON, say something like 'The temperature in [city] is [temp] degrees.'", model)
+	weatherAgent.AddFunction(fn_getweather)
+	weatherAgent.AddFunction(fn_sendmail)
+
+	wsarmgo.RunDemoLoop(client, weatherAgent)
+}
+
+type sendEmailFn struct {
+	wsarmgo.BaseFunction
+}
+
+func NewSendEmalFn() *sendEmailFn {
+	fn := &sendEmailFn{}
+	fn.BaseFunction = *wsarmgo.NewCustomFunction(fn)
+	fn.BaseFunction.SetFunction(sendEmail)
+	return fn
+}
+
+var _ wsarmgo.AgentFunction = (*sendEmailFn)(nil)
+
+func (fn *sendEmailFn) GetName() string {
+	return "sendEmailFn"
+}
+func (fn *sendEmailFn) GetDescription() string {
+	return "Send an email to a recipient."
+}
+func (fn *sendEmailFn) GetParameters() map[string]interface{} {
+	return map[string]interface{}{
+		"type": "object",
+		"properties": map[string]interface{}{
+			"location": map[string]interface{}{
+				"type":        "string",
+				"description": "The city to get the weather for",
 			},
-			{
-				Name:        "sendEmail",
-				Description: "Send an email to a recipient.",
-				Parameters: map[string]interface{}{
-					"type": "object",
-					"properties": map[string]interface{}{
-						"recipient": map[string]interface{}{
-							"type":        "string",
-							"description": "The recipient of the email",
-						},
-						"subject": map[string]interface{}{
-							"type":        "string",
-							"description": "The subject of the email",
-						},
-						"body": map[string]interface{}{
-							"type":        "string",
-							"description": "The body of the email",
-						},
-					},
-					"required": []interface{}{"recipient", "subject", "body"},
-				},
-				Function: sendEmail,
+			"time": map[string]interface{}{
+				"type":        "string",
+				"description": "The time to get the weather for",
 			},
 		},
-		Model: "gpt-4",
+		"required": []interface{}{"location"},
 	}
-	swarmgo.RunDemoLoop(client, weatherAgent)
+}
+
+type getWeatherFn struct {
+	wsarmgo.BaseFunction
+}
+
+func NewGetWeatherFn() *getWeatherFn {
+	fn := &getWeatherFn{}
+	fn.BaseFunction = *wsarmgo.NewCustomFunction(fn)
+	fn.BaseFunction.SetFunction(getWeather)
+	return fn
+}
+
+var _ wsarmgo.AgentFunction = (*getWeatherFn)(nil)
+
+func (fn *getWeatherFn) GetName() string {
+	return "getWeather"
+}
+func (fn *getWeatherFn) GetDescription() string {
+	return "Get the current weather in a given location. Location MUST be a city."
+}
+func (fn *getWeatherFn) GetParameters() map[string]interface{} {
+	return map[string]interface{}{
+		"type": "object",
+		"properties": map[string]interface{}{
+			"location": map[string]interface{}{
+				"type":        "string",
+				"description": "The city to get the weather for",
+			},
+			"time": map[string]interface{}{
+				"type":        "string",
+				"description": "The time to get the weather for",
+			},
+		},
+		"required": []interface{}{"location"},
+	}
 }

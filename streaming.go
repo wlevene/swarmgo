@@ -1,11 +1,11 @@
-package swarmgo
+package wsarmgo
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
 
-	"github.com/wlevene/swarmgo/llm"
+	"github.com/wlevene/wsarmgo/llm"
 )
 
 // StreamHandler represents a handler for streaming responses
@@ -29,7 +29,7 @@ func (h *DefaultStreamHandler) OnError(err error)                {}
 // StreamingResponse handles streaming chat completions
 func (s *Swarm) StreamingResponse(
 	ctx context.Context,
-	agent *Agent,
+	agent Agent,
 	messages []llm.Message,
 	contextVariables map[string]interface{},
 	modelOverride string,
@@ -45,16 +45,16 @@ func (s *Swarm) StreamingResponse(
 	}
 
 	if debug {
-		fmt.Printf("Debug: Using model: %s\n", agent.Model)
+		fmt.Printf("Debug: Using model: %s\n", agent.GetModel().Model)
 		fmt.Printf("Debug: Number of messages: %d\n", len(messages))
-		fmt.Printf("Debug: Number of tools: %d\n", len(agent.Functions))
+		fmt.Printf("Debug: Number of tools: %d\n", len(agent.GetFunctions()))
 	}
 
 	// Prepare the initial system message with agent instructions
-	instructions := agent.Instructions
-	if agent.InstructionsFunc != nil {
-		instructions = agent.InstructionsFunc(contextVariables)
-	}
+	instructions := agent.GetInstructions()
+	// if agent.InstructionsFunc != nil {
+	// 	instructions = agent.InstructionsFunc(contextVariables)
+	// }
 	allMessages := append([]llm.Message{
 		{
 			Role:    llm.RoleSystem,
@@ -64,7 +64,7 @@ func (s *Swarm) StreamingResponse(
 
 	// Build tool definitions
 	var tools []llm.Tool
-	for _, af := range agent.Functions {
+	for _, af := range agent.GetFunctions() {
 		def := FunctionToDefinition(af)
 		if debug {
 			fmt.Printf("Debug: Adding tool: %s\n", def.Name)
@@ -80,7 +80,7 @@ func (s *Swarm) StreamingResponse(
 	}
 
 	// Prepare the streaming request
-	model := agent.Model
+	model := agent.GetModel().Model
 	if modelOverride != "" {
 		model = modelOverride
 	}
@@ -111,7 +111,7 @@ func (s *Swarm) StreamingResponse(
 
 	var currentMessage llm.Message
 	currentMessage.Role = llm.RoleAssistant
-	currentMessage.Name = agent.Name
+	currentMessage.Name = agent.GetName()
 
 	// Track tool calls being built
 	toolCallsInProgress := make(map[string]*llm.ToolCall)
@@ -245,10 +245,10 @@ func (s *Swarm) StreamingResponse(
 							// Only execute if we haven't processed this tool call yet
 							if !processedToolCalls[toolCall.ID] {
 								// Find and execute the corresponding function
-								var fn *AgentFunction
-								for _, f := range agent.Functions {
-									if f.Name == inProgress.Function.Name {
-										fn = &f
+								var fn AgentFunction
+								for _, f := range agent.GetFunctions() {
+									if f.GetName() == inProgress.Function.Name {
+										fn = f
 										break
 									}
 								}
@@ -265,7 +265,7 @@ func (s *Swarm) StreamingResponse(
 								}
 
 								// Execute the function
-								result := fn.Function(args, contextVariables)
+								result := fn.GetFunction()(args, contextVariables)
 
 								// Create function response message
 								var resultContent string
@@ -318,7 +318,7 @@ func (s *Swarm) StreamingResponse(
 								// Reset current message for new response
 								currentMessage = llm.Message{
 									Role: llm.RoleAssistant,
-									Name: agent.Name,
+									Name: agent.GetName(),
 								}
 							}
 						} else if debug {

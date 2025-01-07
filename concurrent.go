@@ -1,10 +1,10 @@
-package swarmgo
+package wsarmgo
 
 import (
 	"context"
 	"sync"
 
-	"github.com/wlevene/swarmgo/llm"
+	"github.com/wlevene/wsarmgo/llm"
 )
 
 // ConcurrentResult represents the result from a single agent's execution
@@ -28,7 +28,7 @@ func NewConcurrentSwarm(apiKey string, provider llm.LLMProvider) *ConcurrentSwar
 
 // AgentConfig holds the configuration for a single agent execution
 type AgentConfig struct {
-	Agent            *Agent
+	Agent            Agent
 	Messages         []llm.Message
 	ContextVariables map[string]interface{}
 	ModelOverride    string
