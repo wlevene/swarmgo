@@ -82,6 +82,8 @@ func (s *Swarm) getChatCompletion(
 	// Build tool definitions from agent's functions
 	var tools []llm.Tool
 	for _, af := range agent.GetFunctions() {
+
+		fmt.Println("add function: ", af)
 		def := FunctionToDefinition(af)
 		tools = append(tools, llm.Tool{
 			Type: "function",
@@ -228,6 +230,8 @@ func (s *Swarm) Run(
 
 	// Check for tool calls
 	if len(choice.Message.ToolCalls) > 0 && executeTools {
+
+		fmt.Println("###ToolCalls: ", choice.Message.ToolCalls)
 		var toolResponses []Response
 		// Add the assistant's message with tool calls
 		history = append(history, choice.Message)
