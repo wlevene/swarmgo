@@ -45,11 +45,10 @@ func (model *Transfer2SpanishFunction) GetDescription() string {
 }
 
 func NewEnglishAgent(model swarmgo.LLM) *EnglishAgent {
-	obj := &EnglishAgent{
-		BaseAgent: *swarmgo.NewBaseAgent("EnglishAgent",
-			"You only speak English.",
-			model),
-	}
+	obj := &EnglishAgent{}
+	obj.BaseAgent = *swarmgo.NewBaseAgent(obj.GetName(),
+		obj.GetInstructions(),
+		model)
 
 	return obj
 }
@@ -68,15 +67,11 @@ func (fn *EnglishAgent) GetDescription() string {
 	return "You only speak English."
 }
 
-func (fn *EnglishAgent) GetParameters() map[string]interface{} {
-	return nil
-}
-
 func NewSpanishAgent(model swarmgo.LLM) *SpanishAgent {
 
 	obj := &SpanishAgent{
-		BaseAgent: *swarmgo.NewBaseAgent("EnglishAgent",
-			"You only speak English.",
+		BaseAgent: *swarmgo.NewBaseAgent("SpanishAgent",
+			"You only speak Spanis.",
 			model),
 	}
 
@@ -96,10 +91,6 @@ func (fn *SpanishAgent) GetName() string {
 
 func (fn *SpanishAgent) GetDescription() string {
 	return "You only speak Spanish."
-}
-
-func (fn *SpanishAgent) GetParameters() map[string]interface{} {
-	return nil
 }
 
 func main() {
