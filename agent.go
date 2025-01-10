@@ -134,7 +134,7 @@ func (a *BaseAgent) GetFunctions() []AgentFunction {
 
 // NewBaseAgent creates a new BaseAgent with initialized memory store.
 func NewBaseAgent(name string, instructions string, model LLM) *BaseAgent {
-	return &BaseAgent{
+	ag := &BaseAgent{
 		name:            name,
 		model:           model,
 		instructions:    instructions,
@@ -142,4 +142,8 @@ func NewBaseAgent(name string, instructions string, model LLM) *BaseAgent {
 		instructionVars: make(map[string]interface{}),
 		memory:          NewMemoryStore(100), // Default to 100 short-term memories
 	}
+
+	date_func := NewDateFunction()
+	ag.AddFunction(date_func)
+	return ag
 }

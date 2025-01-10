@@ -25,6 +25,11 @@ func NewTransferFunction(targetAgent Agent) *TransferFunction {
 }
 
 func (f *TransferFunction) tarnsferAgent(args map[string]interface{}, contextVariables map[string]interface{}) Result {
+
+	fmt.Println("")
+	fmt.Println("### tarnsferAgent:", args, " to: ", f.TargetAgent.GetName())
+	fmt.Println("")
+
 	return Result{
 		Agent: f.TargetAgent,
 		Data:  fmt.Sprintf("Transferring to %s", f.TargetAgent.GetName()),
@@ -36,9 +41,9 @@ func (f *TransferFunction) GetID() string {
 }
 
 func (f *TransferFunction) GetName() string {
-	return "TransferFunction"
+	return fmt.Sprintf("TransferTo%s", f.TargetAgent.GetName())
 }
 
 func (f *TransferFunction) GetDescription() string {
-	return "TransferFunction"
+	return fmt.Sprintf("Transfer the conversation to the %s.", f.TargetAgent.GetName())
 }

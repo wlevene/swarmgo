@@ -114,6 +114,7 @@ func (s *Swarm) getChatCompletion(
 	// Call the LLM to get a chat completion
 	resp, err := s.client.CreateChatCompletion(ctx, req)
 	if err != nil {
+		fmt.Println("1error:", err)
 		return llm.ChatCompletionResponse{}, err
 	}
 
@@ -230,14 +231,13 @@ func (s *Swarm) Run(
 
 	// Check for tool calls
 	if len(choice.Message.ToolCalls) > 0 && executeTools {
-
-		fmt.Println("###ToolCalls: ", choice.Message.ToolCalls)
 		var toolResponses []Response
 		// Add the assistant's message with tool calls
 		history = append(history, choice.Message)
 
 		for _, toolCall := range choice.Message.ToolCalls {
 			toolResp, err := s.handleToolCall(ctx, &toolCall, activeAgent, contextVariables, debug)
+
 			if err != nil {
 				return Response{}, err
 			}

@@ -21,7 +21,7 @@ type AgentFunction interface {
 	GetFunction() Function
 	SetFunction(fn Function)
 
-	Execute(args map[string]interface{}, contextVariables map[string]interface{}) Result
+	// Execute(args map[string]interface{}, contextVariables map[string]interface{}) Result
 }
 
 // FunctionToDefinition converts an AgentFunction to a llm.Function

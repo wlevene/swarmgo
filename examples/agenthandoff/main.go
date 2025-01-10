@@ -36,12 +36,11 @@ func (model *Transfer2SpanishFunction) GetID() string {
 }
 
 func (model *Transfer2SpanishFunction) GetName() string {
-
 	return "Transferang2SpanishFunction"
 }
 
 func (model *Transfer2SpanishFunction) GetDescription() string {
-	return "Transfer to  Spanish-speaking users immediately."
+	return "Transfer to Spanish-speaking users immediately."
 }
 
 func NewEnglishAgent(model swarmgo.LLM) *EnglishAgent {
