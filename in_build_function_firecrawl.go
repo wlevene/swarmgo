@@ -35,13 +35,13 @@ func NewFirecrawlFunction(appkey, baseurl string) *FirecrawlFunction {
 		return nil
 	}
 	fn.BaseFunction = *baseFn
-	fn.BaseFunction.SetFunction(fn.work)
+	fn.BaseFunction.SetFunction(fn.Work)
 	return fn
 }
 
 var _ AgentFunction = (*FirecrawlFunction)(nil)
 
-func (fn *FirecrawlFunction) work(args map[string]interface{}, contextVariables map[string]interface{}) Result {
+func (fn *FirecrawlFunction) Work(args map[string]interface{}, contextVariables map[string]interface{}) Result {
 
 	result := Result{}
 

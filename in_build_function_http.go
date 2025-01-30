@@ -47,11 +47,11 @@ func NewHttpClientFunction() *HttpClientFunction {
 		return nil
 	}
 	fn.BaseFunction = *baseFn
-	fn.BaseFunction.SetFunction(fn.work)
+	fn.BaseFunction.SetFunction(fn.Work)
 	return fn
 }
 
-func (fn *HttpClientFunction) work(args map[string]interface{}, contextVariables map[string]interface{}) Result {
+func (fn *HttpClientFunction) Work(args map[string]interface{}, contextVariables map[string]interface{}) Result {
 	result := Result{
 		Success: false,
 		Data:    "",

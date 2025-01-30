@@ -18,11 +18,11 @@ func NewDateFunction() *DateFunction {
 		return nil
 	}
 	fn.BaseFunction = *baseFn
-	fn.BaseFunction.SetFunction(fn.work)
+	fn.BaseFunction.SetFunction(fn.Work)
 	return fn
 }
 
-func (fn *DateFunction) work(args map[string]interface{}, contextVariables map[string]interface{}) Result {
+func (fn *DateFunction) Work(args map[string]interface{}, contextVariables map[string]interface{}) Result {
 
 	return Result{
 		Success: true,
