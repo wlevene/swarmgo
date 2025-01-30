@@ -114,7 +114,7 @@ func (s *Swarm) getChatCompletion(
 	// Call the LLM to get a chat completion
 	resp, err := s.client.CreateChatCompletion(ctx, req)
 	if err != nil {
-		fmt.Println("1error:", err)
+		fmt.Println("error:", err)
 		return llm.ChatCompletionResponse{}, err
 	}
 
