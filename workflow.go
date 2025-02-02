@@ -224,6 +224,7 @@ func (wf *Workflow) Execute(startAgent string, userRequest string) (*WorkflowRes
 		}
 
 		// Determine next agent
+		fmt.Println("1: runto next agent,currentAgent:", wf.currentAgent)
 		nextAgent, shouldContinue := wf.routeToNextAgent(wf.currentAgent, messageHistory)
 		stepResult.NextAgent = nextAgent
 
@@ -331,7 +332,7 @@ func (wf *Workflow) executeAgent(agentName string, messageHistory []llm.Message)
 		state,
 		"",
 		false,
-		false,
+		true,
 		0,
 		true,
 	)
@@ -359,7 +360,9 @@ func (wf *Workflow) routeToNextAgent(currentAgent string, messageHistory []llm.M
 
 	// Check for explicit routing instructions
 	if containsRoutingInstruction(lastMessage.Content) {
+		fmt.Println("2: containsRoutingInstruction:")
 		nextAgent := extractRoutingAgent(lastMessage.Content)
+		fmt.Println("3: containsRoutingInstruction:", nextAgent)
 		if _, exists := wf.agents[nextAgent]; exists {
 			return nextAgent, true
 		}
@@ -370,6 +373,7 @@ func (wf *Workflow) routeToNextAgent(currentAgent string, messageHistory []llm.M
 	case SupervisorWorkflow:
 		return wf.handleSupervisorRouting(currentAgent, messageHistory)
 	case HierarchicalWorkflow:
+		fmt.Println("4: containsRoutingInstruction:", currentAgent)
 		return wf.handleHierarchicalRouting(currentAgent, messageHistory)
 	case CollaborativeWorkflow:
 		return wf.handleCollaborativeRouting(currentAgent, messageHistory)
@@ -420,6 +424,7 @@ func (wf *Workflow) handleHierarchicalRouting(currentAgent string, messageHistor
 
 	// If task is complete, route back to team leader or supervisor
 	if isTaskComplete(lastMessage.Content) {
+		fmt.Println("5: isTaskComplete true:")
 		// Find which team the current agent belongs to
 		for team, agents := range wf.teams {
 			for _, agent := range agents {
@@ -437,6 +442,7 @@ func (wf *Workflow) handleHierarchicalRouting(currentAgent string, messageHistor
 
 	// Check for specific tool/function calls
 	if strings.Contains(lastMessage.Content, "function") || strings.Contains(lastMessage.Content, "tool") {
+		fmt.Println("6:Route to appropriate specialized agent based on function type")
 		// Route to appropriate specialized agent based on function type
 		functionPatterns := map[string][]string{
 			`(?i)(search|api)`:                   {"searcher", "web_scraper"},

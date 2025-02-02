@@ -1,7 +1,6 @@
 package swarmgo
 
 import (
-	"fmt"
 	"strings"
 	"text/template"
 )
@@ -80,8 +79,6 @@ func (a *BaseAgent) SetInstructions(instructions string) {
 
 // AddFunction adds a function to the agent's list of functions.
 func (a *BaseAgent) AddFunction(fn AgentFunction) {
-
-	fmt.Println("add fn:", fn.GetDescription())
 	a.Functions = append(a.Functions, fn)
 }
 

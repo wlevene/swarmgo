@@ -2,6 +2,8 @@ package swarmgo
 
 import (
 	"fmt"
+
+	"github.com/wlevene/swarmgo/llm"
 )
 
 // ProcessAndPrintResponse processes and prints the response from the LLM.
@@ -34,4 +36,35 @@ func ProcessAndPrintResponse(response Response) {
 			fmt.Printf("\033[95mFunction Result\033[0m: %s\n", message.Content)
 		}
 	}
+}
+
+func PrintStepResult(step StepResult) {
+	fmt.Printf("\n\033[95mStep %d Results:\033[0m\n", step.StepNumber)
+	fmt.Printf("Agent: %s\n", step.AgentName)
+	fmt.Printf("Duration: %v\n", step.EndTime.Sub(step.StartTime))
+	if step.Error != nil {
+		fmt.Printf("\033[91mError: %v\033[0m\n", step.Error)
+		return
+	}
+
+	fmt.Println("\nOutput:")
+	for _, msg := range step.Output {
+		switch msg.Role {
+		case llm.RoleUser:
+			fmt.Printf("\033[92m[User]\033[0m: %s\n", msg.Content)
+		case llm.RoleAssistant:
+			name := msg.Name
+			if name == "" {
+				name = "Assistant"
+			}
+			fmt.Printf("\033[94m[%s]\033[0m: %s\n", name, msg.Content)
+		case llm.RoleFunction, "tool":
+			fmt.Printf("\033[95m[Function Result]\033[0m: %s\n", msg.Content)
+		}
+	}
+
+	if step.NextAgent != "" {
+		fmt.Printf("\nNext Agent: %s\n", step.NextAgent)
+	}
+	fmt.Println("-----------------------------------------")
 }

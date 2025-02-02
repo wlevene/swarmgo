@@ -12,8 +12,6 @@ const (
 
 func TestFireCrawlFun(t *testing.T) {
 
-	// AppKey: fc-b4cc1afecab64a1290be172596498738
-	// BaseUrl: https://api.firecrawl.dev
 	fn := NewFirecrawlFunction(appkey, baseurl)
 	if fn == nil {
 		t.Error("Firecrawl function is nil")
