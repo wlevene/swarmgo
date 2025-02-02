@@ -33,48 +33,64 @@ type WorkflowDefinition interface {
 	Validate() error
 }
 
-// baseNode implements the Node interface
-type baseNode struct {
+// BaseNode provides a basic implementation of the Node interface
+type BaseNode struct {
 	id     string
 	typ    NodeType
 	config map[string]interface{}
 }
 
-func (n *baseNode) GetID() string {
+func NewBaseNode(id string, typ NodeType) *BaseNode {
+	return &BaseNode{
+		id:     id,
+		typ:    typ,
+		config: make(map[string]interface{}),
+	}
+}
+
+func (n *BaseNode) GetID() string {
 	return n.id
 }
 
-func (n *baseNode) GetType() NodeType {
+func (n *BaseNode) GetType() NodeType {
 	return n.typ
 }
 
-func (n *baseNode) GetConfig() map[string]interface{} {
+func (n *BaseNode) GetConfig() map[string]interface{} {
 	return n.config
 }
 
-func (n *baseNode) Validate() error {
+func (n *BaseNode) Validate() error {
 	if n.id == "" {
 		return fmt.Errorf("node id cannot be empty")
 	}
 	return nil
 }
 
-// baseEdge implements the Edge interface
-type baseEdge struct {
+// BaseEdge provides a basic implementation of the Edge interface
+type BaseEdge struct {
 	source    string
 	target    string
 	condition Condition
 }
 
-func (e *baseEdge) GetSource() string {
+func NewBaseEdge(source, target string, condition Condition) *BaseEdge {
+	return &BaseEdge{
+		source:    source,
+		target:    target,
+		condition: condition,
+	}
+}
+
+func (e *BaseEdge) GetSource() string {
 	return e.source
 }
 
-func (e *baseEdge) GetTarget() string {
+func (e *BaseEdge) GetTarget() string {
 	return e.target
 }
 
-func (e *baseEdge) GetCondition() Condition {
+func (e *BaseEdge) GetCondition() Condition {
 	return e.condition
 }
 

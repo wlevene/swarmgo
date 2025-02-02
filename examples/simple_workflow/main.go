@@ -9,53 +9,24 @@ import (
 
 // SimpleNode 实现了基本的节点功能
 type SimpleNode struct {
-	id     string
-	config map[string]interface{}
+	*swarmgo.BaseNode
 }
 
 func NewSimpleNode(id string) *SimpleNode {
 	return &SimpleNode{
-		id:     id,
-		config: make(map[string]interface{}),
+		BaseNode: swarmgo.NewBaseNode(id, "simple"),
 	}
-}
-
-func (n *SimpleNode) GetID() string {
-	return n.id
-}
-
-func (n *SimpleNode) GetType() swarmgo.NodeType {
-	return "simple"
-}
-
-func (n *SimpleNode) GetConfig() map[string]interface{} {
-	return n.config
-}
-
-func (n *SimpleNode) Validate() error {
-	if n.id == "" {
-		return fmt.Errorf("node id cannot be empty")
-	}
-	return nil
 }
 
 // SimpleEdge 实现了基本的边功能
 type SimpleEdge struct {
-	source    string
-	target    string
-	condition swarmgo.Condition
+	*swarmgo.BaseEdge
 }
 
-func (e *SimpleEdge) GetSource() string {
-	return e.source
-}
-
-func (e *SimpleEdge) GetTarget() string {
-	return e.target
-}
-
-func (e *SimpleEdge) GetCondition() swarmgo.Condition {
-	return e.condition
+func NewSimpleEdge(source, target string) *SimpleEdge {
+	return &SimpleEdge{
+		BaseEdge: swarmgo.NewBaseEdge(source, target, nil),
+	}
 }
 
 func main() {
@@ -73,8 +44,8 @@ func main() {
 	workflow.AddNode(node3)
 
 	// 添加边来连接节点
-	workflow.AddEdge(&SimpleEdge{source: "node1", target: "node2"})
-	workflow.AddEdge(&SimpleEdge{source: "node2", target: "node3"})
+	workflow.AddEdge(NewSimpleEdge("node1", "node2"))
+	workflow.AddEdge(NewSimpleEdge("node2", "node3"))
 
 	// 创建执行引擎
 	engine := swarmgo.NewExecutionEngine()
