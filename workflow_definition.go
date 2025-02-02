@@ -17,6 +17,7 @@ type Node interface {
 	GetType() NodeType
 	GetConfig() map[string]interface{}
 	Validate() error
+	Execute(ctx ExecutionContext) error
 }
 
 // Edge interface defines the connection between nodes

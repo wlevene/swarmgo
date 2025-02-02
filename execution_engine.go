@@ -88,8 +88,14 @@ func (e *executionEngine) StartWorkflow(def WorkflowDefinition, input map[string
 		definition:  def,
 		status:      StatusPending,
 		currentNode: "",
-		state:       input,
+		state:       make(map[string]interface{}),
 		startTime:   time.Now(),
+	}
+
+	if input != nil {
+		for k, v := range input {
+			instance.state[k] = v
+		}
 	}
 
 	e.mu.Lock()
@@ -187,9 +193,17 @@ func (e *executionEngine) executeWorkflow(instance *workflowInstance) {
 		currentNode := nodes[instance.currentNode]
 		fmt.Printf("\033[96m[DEBUG] 正在执行节点 %s (类型: %s)\033[0m\n", currentNode.GetID(), currentNode.GetType())
 
-		// TODO: 实现节点执行逻辑
-		// 这里暂时只是模拟节点执行
-		time.Sleep(time.Second)
+		// 执行当前节点的业务逻辑
+		fmt.Printf("\033[94m[INFO] 开始执行节点 %s 的业务逻辑\033[0m\n", currentNode.GetID())
+		if err := currentNode.Execute(ctx); err != nil {
+			fmt.Printf("\033[91m[ERROR] 节点 %s 执行失败: %v\033[0m\n", currentNode.GetID(), err)
+			instance.status = StatusFailed
+			instance.error = err
+			now := time.Now()
+			instance.endTime = &now
+			return
+		}
+		fmt.Printf("\033[92m[INFO] 节点 %s 执行完成\033[0m\n", currentNode.GetID())
 
 		// 找到下一个要执行的节点
 		var nextNode Node

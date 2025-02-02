@@ -2,20 +2,85 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/wlevene/swarmgo"
 )
 
-// SimpleNode 实现了基本的节点功能
-type SimpleNode struct {
+// DataProcessNode 实现数据处理节点
+type DataProcessNode struct {
 	*swarmgo.BaseNode
 }
 
-func NewSimpleNode(id string) *SimpleNode {
-	return &SimpleNode{
-		BaseNode: swarmgo.NewBaseNode(id, "simple"),
+func NewDataProcessNode(id string) *DataProcessNode {
+	return &DataProcessNode{
+		BaseNode: swarmgo.NewBaseNode(id, "data_process"),
 	}
+}
+
+func (n *DataProcessNode) Execute(ctx swarmgo.ExecutionContext) error {
+	// 模拟数据处理：将输入数据乘以2
+	inputData, ok := ctx.GetState()["input"].(float64)
+	if !ok {
+		return fmt.Errorf("invalid input data type")
+	}
+
+	// 处理数据
+	processedData := inputData * 2
+
+	// 存储处理结果
+	ctx.SetState("processed_data", processedData)
+	return nil
+}
+
+// CalculationNode 实现计算节点
+type CalculationNode struct {
+	*swarmgo.BaseNode
+}
+
+func NewCalculationNode(id string) *CalculationNode {
+	return &CalculationNode{
+		BaseNode: swarmgo.NewBaseNode(id, "calculation"),
+	}
+}
+
+func (n *CalculationNode) Execute(ctx swarmgo.ExecutionContext) error {
+	// 获取处理后的数据
+	processedData, ok := ctx.GetState()["processed_data"].(float64)
+	if !ok {
+		return fmt.Errorf("processed data not found or invalid type")
+	}
+
+	// 计算平方根
+	result := math.Sqrt(processedData)
+
+	// 存储计算结果
+	ctx.SetState("calculation_result", result)
+	return nil
+}
+
+// OutputNode 实现输出节点
+type OutputNode struct {
+	*swarmgo.BaseNode
+}
+
+func NewOutputNode(id string) *OutputNode {
+	return &OutputNode{
+		BaseNode: swarmgo.NewBaseNode(id, "output"),
+	}
+}
+
+func (n *OutputNode) Execute(ctx swarmgo.ExecutionContext) error {
+	// 获取计算结果
+	result, ok := ctx.GetState()["calculation_result"].(float64)
+	if !ok {
+		return fmt.Errorf("calculation result not found or invalid type")
+	}
+
+	// 输出结果
+	fmt.Printf("\033[92m[OUTPUT] 最终计算结果: %.2f\033[0m\n", result)
+	return nil
 }
 
 // SimpleEdge 实现了基本的边功能
@@ -33,25 +98,30 @@ func main() {
 	// 创建工作流定义
 	workflow := swarmgo.NewWorkflowDefinition()
 
-	// 创建三个简单节点
-	node1 := NewSimpleNode("node1")
-	node2 := NewSimpleNode("node2")
-	node3 := NewSimpleNode("node3")
+	// 创建三个不同类型的节点
+	dataProcessNode := NewDataProcessNode("process")
+	calculationNode := NewCalculationNode("calculate")
+	outputNode := NewOutputNode("output")
 
 	// 添加节点到工作流
-	workflow.AddNode(node1)
-	workflow.AddNode(node2)
-	workflow.AddNode(node3)
+	workflow.AddNode(dataProcessNode)
+	workflow.AddNode(calculationNode)
+	workflow.AddNode(outputNode)
 
 	// 添加边来连接节点
-	workflow.AddEdge(NewSimpleEdge("node1", "node2"))
-	workflow.AddEdge(NewSimpleEdge("node2", "node3"))
+	workflow.AddEdge(NewSimpleEdge("process", "calculate"))
+	workflow.AddEdge(NewSimpleEdge("calculate", "output"))
 
 	// 创建执行引擎
 	engine := swarmgo.NewExecutionEngine()
 
+	// 准备输入数据
+	input := map[string]interface{}{
+		"input": 16.0, // 初始输入值
+	}
+
 	// 启动工作流
-	instanceID, err := engine.StartWorkflow(workflow, nil)
+	instanceID, err := engine.StartWorkflow(workflow, input)
 	if err != nil {
 		fmt.Printf("启动工作流失败: %v\n", err)
 		return
