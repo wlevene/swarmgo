@@ -1,9 +1,7 @@
 package main
 
 import (
-	"context"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 	"time"
@@ -253,30 +251,10 @@ func main() {
 	// 为问题收集agent添加转移功能
 	questionAgent.AddFunction(transferToStorage)
 
-	// 初始消息
-	messages := []llm.Message{
-		{Role: "user", Content: "你好，我想开始回答问题"},
-	}
-
-	ctx := context.Background()
-	response, err := client.Run(ctx,
-		questionAgent,
-		messages,
-		nil,
-		"",
-		false,
-		false,
-		10,
-		true)
-
-	if err != nil {
-		log.Fatalf("Error: %v", err)
-	}
-
-	fmt.Printf("%s: %s\n", response.Agent.GetName(), response.Messages[len(response.Messages)-1].Content)
-
 	// 启动交互式demo循环
-	fmt.Println("\n=== 开始问题收集流程 ===")
+	fmt.Println("\n=== 问题收集与存储系统 ===")
+	fmt.Println("欢迎使用问题收集系统！我将向您询问几个问题，请如实回答。")
 	fmt.Println("提示：输入 'quit' 或 'exit' 退出程序")
+	fmt.Println("")
 	swarmgo.RunDemoLoop(client, questionAgent)
 }
