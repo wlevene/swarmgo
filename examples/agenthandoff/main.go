@@ -45,6 +45,8 @@ func (model *Transfer2SpanishFunction) GetDescription() string {
 
 func NewEnglishAgent(model swarmgo.LLM) *EnglishAgent {
 	obj := &EnglishAgent{}
+	obj.SetInstructions("You only speak English.")
+
 	obj.BaseAgent = *swarmgo.NewBaseAgent(obj.GetName(),
 		obj.GetInstructions(),
 		model)
