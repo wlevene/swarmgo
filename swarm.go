@@ -81,6 +81,8 @@ func (s *Swarm) getChatCompletion(
 
 	// Build tool definitions from agent's functions
 	var tools []llm.Tool
+	fmt.Println()
+	fmt.Println("add funciotns...start")
 	for _, af := range agent.GetFunctions() {
 
 		fmt.Println("add function: ", af)
@@ -94,6 +96,8 @@ func (s *Swarm) getChatCompletion(
 			},
 		})
 	}
+	fmt.Println("add funciotns...end")
+	fmt.Println()
 
 	// Prepare the chat completion request
 	model := agent.GetModel()
@@ -108,13 +112,18 @@ func (s *Swarm) getChatCompletion(
 	}
 
 	if debug {
+		log.Println()
 		log.Printf("Getting chat completion for: %+v\n", messages)
+		for _, m := range req.Messages {
+			PrintMessage(m)
+		}
+		log.Println()
 	}
 
 	// Call the LLM to get a chat completion
 	resp, err := s.client.CreateChatCompletion(ctx, req)
 	if err != nil {
-		fmt.Println("error:", err)
+		fmt.Println("error ###:", err)
 		return llm.ChatCompletionResponse{}, err
 	}
 
@@ -219,6 +228,7 @@ func (s *Swarm) Run(
 	// Get chat completion from LLM
 	resp, err := s.getChatCompletion(ctx, activeAgent, history, contextVariables, modelOverride, stream, debug)
 	if err != nil {
+		fmt.Println("111111@@")
 		return Response{}, err
 	}
 

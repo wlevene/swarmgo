@@ -38,6 +38,39 @@ func ProcessAndPrintResponse(response Response) {
 	}
 }
 
+// PrintMessage prints a single message with appropriate color formatting
+func PrintMessage(message llm.Message) {
+	switch message.Role {
+	case llm.RoleUser:
+		fmt.Printf("\033[92m[User]\033[0m: %s\n", message.Content)
+	case llm.RoleAssistant:
+		name := message.Name
+		if name == "" {
+			name = "Assistant"
+		}
+		// Print tool calls first
+		if len(message.ToolCalls) > 0 {
+			for _, toolCall := range message.ToolCalls {
+				fmt.Printf("\033[94m%s\033[0m is calling function '%s' with arguments: %s\n",
+					name, toolCall.Function.Name, toolCall.Function.Arguments)
+			}
+			if message.Content == "" {
+				return // Skip printing empty content if we only have tool calls
+			}
+		}
+		// Print content if present
+		if message.Content != "" {
+			fmt.Printf("\033[94m[%s]\033[0m: %s\n", name, message.Content)
+		}
+	case llm.RoleFunction, llm.RoleTool:
+		fmt.Printf("\033[95m[Function Result]\033[0m: %s\n", message.Content)
+	case llm.RoleSystem:
+		fmt.Printf("\033[93m[System]\033[0m: %s\n", message.Content)
+	default:
+		fmt.Printf("\033[90m[%s]\033[0m: %s\n", message.Role, message.Content)
+	}
+}
+
 func PrintStepResult(step StepResult) {
 	fmt.Printf("\n\033[95mStep %d Results:\033[0m\n", step.StepNumber)
 	fmt.Printf("Agent: %s\n", step.AgentName)
