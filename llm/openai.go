@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 
 	"github.com/sashabaranov/go-openai"
 )
@@ -103,6 +104,10 @@ func (o *OpenAILLM) CreateChatCompletion(ctx context.Context, req ChatCompletion
 		PresencePenalty: req.PresencePenalty,
 		Tools:           convertToOpenAITools(req.Tools),
 	}
+
+	log.Println("---")
+	log.Printf("OpenAI Messages: %+v\n", openAIReq.Messages)
+	log.Println("---")
 
 	resp, err := o.client.CreateChatCompletion(ctx, openAIReq)
 	if err != nil {

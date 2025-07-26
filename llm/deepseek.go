@@ -27,11 +27,11 @@ func NewDeepSeekLLM(apiKey string) *DeepSeekLLM {
 }
 
 type deepseekMessage struct {
-	Role        string     `json:"role"`
-	Content     string     `json:"content"`
-	Name        string     `json:"name,omitempty"`
-	ToolCalls   []ToolCall `json:"tool_calls,omitempty"`
-	ToolCallID  string     `json:"tool_call_id,omitempty"`
+	Role       string     `json:"role"`
+	Content    string     `json:"content"`
+	Name       string     `json:"name,omitempty"`
+	ToolCalls  []ToolCall `json:"tool_calls,omitempty"`
+	ToolCallID string     `json:"tool_call_id,omitempty"`
 }
 
 // Convert Message to deepseekMessage
@@ -56,11 +56,11 @@ func convertFromDeepSeekMessage(msg deepseekMessage) Message {
 }
 
 type deepseekRequest struct {
-	Model            string           `json:"model"`
+	Model            string            `json:"model"`
 	Messages         []deepseekMessage `json:"messages"`
-	FrequencyPenalty float32          `json:"frequency_penalty,omitempty"`
-	MaxTokens        int              `json:"max_tokens,omitempty"`
-	PresencePenalty  float32          `json:"presence_penalty,omitempty"`
+	FrequencyPenalty float32           `json:"frequency_penalty,omitempty"`
+	MaxTokens        int               `json:"max_tokens,omitempty"`
+	PresencePenalty  float32           `json:"presence_penalty,omitempty"`
 	ResponseFormat   *struct {
 		Type string `json:"type"`
 	} `json:"response_format,omitempty"`
