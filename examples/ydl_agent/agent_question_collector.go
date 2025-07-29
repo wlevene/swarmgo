@@ -35,8 +35,8 @@ func NewQuestionCollectorAgent(model swarmgo.LLM) *QuestionCollectorAgent {
 	}
 
 	instructions := `你是一个问题收集助手。你的任务是：向用户友好的提出一个问题，让用户做答
-请用友好的语气与用户交流，除了询问指定的问题之后，不回答任何问题, 当用户说start或者完成上一个回答时，调用函数GetNextQuestion获取要回答的内容
-}
+请用友好的语气与用户交流，除了询问指定的问题之后，不回答任何问题, 
+当用户说start开始时 或者 你不清楚要问什么时，调用函数getNextQuestion获取要回答的内容，使用这个问题来向用户询问
 `
 
 	obj.BaseAgent = *swarmgo.NewBaseAgent(obj.GetName(), instructions, model)
@@ -77,6 +77,30 @@ func (fn *Transfer2StorageFunction) GetName() string {
 
 func (fn *Transfer2StorageFunction) GetDescription() string {
 	return "当所有问题收集完成后，将结果转交给存储助手进行保存"
+}
+
+// Transfer2ShootingPlanFunction 用于从收集agent转移到拍摄方案生成agent
+type Transfer2ShootingPlanFunction struct {
+	swarmgo.TransferFunction
+}
+
+func NewTransfer2ShootingPlanFunction(targetAgent swarmgo.Agent) *Transfer2ShootingPlanFunction {
+	fn := &Transfer2ShootingPlanFunction{}
+	fn.TransferFunction = *swarmgo.NewTransferFunction(targetAgent)
+	return fn
+}
+
+// Transfer函数实现
+func (fn *Transfer2ShootingPlanFunction) GetID() string {
+	return "Transfer2ShootingPlanFunction"
+}
+
+func (fn *Transfer2ShootingPlanFunction) GetName() string {
+	return "transferToShootingPlan"
+}
+
+func (fn *Transfer2ShootingPlanFunction) GetDescription() string {
+	return "将用户转交给拍摄方案生成助手，用于生成专业的拍摄方案"
 }
 
 // NewGetNextQuestionFunction 创建获取下一个问题的函数
@@ -162,7 +186,7 @@ func (fn *GetNextQuestionFunction) work(args map[string]interface{}, contextVari
 
 	var responseMessage string
 	if action == "start" {
-		responseMessage = fmt.Sprintf("欢迎开始问答！\n\n%s：%s", progressInfo, currentQuestion)
+		responseMessage = fmt.Sprintf("需要回答的是: \n%s：%s", progressInfo, currentQuestion)
 	} else {
 		responseMessage = fmt.Sprintf("感谢您的回答！\n\n%s：%s", progressInfo, currentQuestion)
 	}

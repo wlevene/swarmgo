@@ -9,12 +9,6 @@ import (
 	"github.com/wlevene/swarmgo/llm"
 )
 
-// 全局问题列表定义
-var DefaultQuestions = []string{
-	"您的年龄是多少？",
-	"请问您的全名是什么？",
-}
-
 func main() {
 	if err := dotenv.Load(); err != nil {
 		fmt.Println("Warning: .env file not found, using environment variables")
@@ -46,13 +40,16 @@ func main() {
 
 	// 创建agents
 	questionAgent := NewQuestionCollectorAgent(model)
-	storageAgent := NewResultStorageAgent(model)
+	// storageAgent := NewResultStorageAgent(model)
+	shootingPlanAgent := NewShootingPlanAgent(model)
 
 	// 创建转移函数
-	transferToStorage := NewTransfer2StorageFunction(storageAgent)
+	// transferToStorage := NewTransfer2StorageFunction(storageAgent)
+	transferToShootingPlan := NewTransfer2ShootingPlanFunction(shootingPlanAgent)
 
 	// 为问题收集agent添加转移功能
-	questionAgent.AddFunction(transferToStorage)
+	// questionAgent.AddFunction(transferToStorage)
+	questionAgent.AddFunction(transferToShootingPlan)
 
 	// 启动交互式demo循环
 	fmt.Println("\n=== 问题收集与存储系统 ===")
